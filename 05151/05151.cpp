@@ -1,20 +1,62 @@
-﻿// 05151.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
-//
+﻿#include <iostream>
+#include <opencv2/opencv.hpp>
+using namespace cv;
+using namespace std;
+int gammaCorrection(cv::Mat srcMat, cv::Mat & dstMat, float gamma)
+{
 
-#include <iostream>
+	//处理单通道图像
+	if (srcMat.channels() != 1)return -1;
+	//查询表
+	unsigned char lut[256];
+	for (int i = 0; i < 256; i++)
+	{
+		//，防止像素值溢出，如果值<0,则返回0，如果大于255，则返回255
+		lut[i] = saturate_cast<uchar>(pow((float)(i / 255.0), gamma) * 255.0f);
+		float inten = (float)i;
+	}
+   srcMat.copyTo(dstMat);
 
+	MatIterator_<uchar> it, end;
+	for (it = dstMat.begin<uchar>(), end = dstMat.end<uchar>(); it != end; it++) {
+		*it = lut[(*it)];
+	}
+
+	return 0;
+}
+int gammaMain()
+{
+
+	cv::Mat srcMat = imread("D:\\360downloads\\21.jpg", 0);
+	cv::Mat dstMat;
+
+	if (srcMat.empty()) {
+		cout << "fail" << endl;
+		return -1;
+	}
+	float gamma = 0.5;
+	gammaCorrection(srcMat, dstMat, gamma);
+
+	imshow("src", srcMat);
+	imshow("dst", dstMat);
+	waitKey(0);
+
+	destroyAllWindows();
+
+	return 0;
+}
 int main()
 {
-    std::cout << "Hello World!\n";
+	//计时
+	double start = static_cast<double>(cvGetTickCount());
+	//gamma矫正
+	gammaMain();
+   //结束计时
+	double time = ((double)cvGetTickCount() - start) / cvGetTickFrequency();
+	//显示时间
+	cout << "processing" << time / 1000 << "ms" << endl;
+
+	//按任意键结束
+	system("pause");
+	return 0;
 }
-
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
-
-// 入门使用技巧: 
-//   1. 使用解决方案资源管理器窗口添加/管理文件
-//   2. 使用团队资源管理器窗口连接到源代码管理
-//   3. 使用输出窗口查看生成输出和其他消息
-//   4. 使用错误列表窗口查看错误
-//   5. 转到“项目”>“添加新项”以创建新的代码文件，或转到“项目”>“添加现有项”以将现有代码文件添加到项目
-//   6. 将来，若要再次打开此项目，请转到“文件”>“打开”>“项目”并选择 .sln 文件
